@@ -46,11 +46,16 @@ stay empty.
 
 Finally, simply run Application in IntelliJ with 'Run' button.
 
-# Deploying AWS infrastructure (GitHub)
+# Deploying
+To deploy the application, you need to create an EC2 machine, checkout this repository on it, build the app, dockerize it and push to ECR.
+
+Your ECS Fargate should be configured in such way, that it will consume the Docker image from ECR.
+
+Additionally, you have to set secrets in the secret manager.
 
 ## Configuring secrets in AWS
 In order for our application to be able to access AWS Secrets Manager containing credentials for basic auth, please 
-go to AWS Secret Manager, copy ARN of the created Secret and set it in the task definition for the region that you are deploying.
+go to AWS Secret Manager, copy ARN of the created Secret and set it in the task definition (in ECS Fargate) for the region that you are deploying.
 
 You need to add new environment variable:
 - Key -> SPRING_APPLICATION_JSON
@@ -77,3 +82,27 @@ You should add the following secrets that will create users for basic auth:
 
 Spring will automatically load this JSON to the Spring container at the application start up and user **userEMEATest** 
 with password **welt** will be available for basic auth during application execution in EMEA TEST environment.
+
+## Testing
+Please then copy DNS of your load balancer and feel free to run test curls.
+Example:
+```
+curl http://backend-lb-672995306.eu-central-1.elb.amazonaws.com/device/v1/test \
+-u userEMEATest:welt
+```
+
+```
+curl http://backend-lb-672995306.eu-central-1.elb.amazonaws.com/device/v1/test \
+-H 'Content-Type: application/json' \
+-u userEMEATest:welt \
+--data '{
+    "type": "testing",
+    "value": -510.190
+}'
+```
+
+User is **userEMEATest** and password is **welt**.
+
+In case of errors, please correct them, and run the script again.
+
+Check IAM, Cloudwatch Logs, S3 buckets if everything was deleted.
